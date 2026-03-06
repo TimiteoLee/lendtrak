@@ -21,7 +21,7 @@ export function Nav() {
       <header className="hidden md:block" style={{ borderBottom: "1px solid var(--border)" }}>
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="text-xl tracking-widest uppercase font-normal">
-            LendTrak
+            ToolTrack
           </Link>
           <nav className="flex gap-6">
             {navItems.map((item) => (
@@ -81,7 +81,7 @@ export function Nav() {
       >
         <div className="px-4 py-3 text-center">
           <Link href="/" className="text-lg tracking-widest uppercase">
-            LendTrak
+            ToolTrack
           </Link>
         </div>
       </header>

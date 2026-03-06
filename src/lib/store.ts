@@ -1,8 +1,8 @@
 import { Tool, Person, Loan } from "@/types";
 
-const TOOLS_KEY = "lendtrak_tools";
-const PEOPLE_KEY = "lendtrak_people";
-const LOANS_KEY = "lendtrak_loans";
+const TOOLS_KEY = "tooltrack_tools";
+const PEOPLE_KEY = "tooltrack_people";
+const LOANS_KEY = "tooltrack_loans";
 
 function generateId(): string {
   return crypto.randomUUID();

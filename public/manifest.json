@@ -1,6 +1,6 @@
 {
-  "name": "LendTrak",
-  "short_name": "LendTrak",
+  "name": "ToolTrack",
+  "short_name": "ToolTrack",
   "description": "Honest tool lending records",
   "start_url": "/",
   "display": "standalone",

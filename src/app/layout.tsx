@@ -5,7 +5,7 @@ import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { ThemeProvider } from "@/lib/theme";
 
 export const metadata: Metadata = {
-  title: "LendTrak — Honest Tool Lending",
+  title: "ToolTrack — Honest Tool Lending",
   description: "Keep an honest record of every tool you lend. Who borrowed it, when, and in what condition.",
   manifest: "/manifest.json",
   icons: {
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "LendTrak",
+    title: "ToolTrack",
   },
 };
 

@@ -86,9 +86,9 @@ export default function SettingsPage() {
                 "This will permanently delete all your tools, contacts, and loan records. Are you sure?"
               )
             ) {
-              localStorage.removeItem("lendtrak_tools");
-              localStorage.removeItem("lendtrak_people");
-              localStorage.removeItem("lendtrak_loans");
+              localStorage.removeItem("tooltrack_tools");
+              localStorage.removeItem("tooltrack_people");
+              localStorage.removeItem("tooltrack_loans");
               window.location.href = "/";
             }
           }}
