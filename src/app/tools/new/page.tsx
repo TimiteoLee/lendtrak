@@ -24,12 +24,14 @@ export default function NewToolPage() {
   const [category, setCategory] = useState("Hand Tools");
   const [value, setValue] = useState("");
   const [condition, setCondition] = useState("Good");
+  const [saving, setSaving] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim() || saving) return;
+    setSaving(true);
 
-    saveTool({
+    await saveTool({
       name: name.trim(),
       description: description.trim(),
       category,
@@ -43,15 +45,11 @@ export default function NewToolPage() {
   return (
     <div>
       <h1 className="page-title">Add Tool</h1>
-      <p className="page-subtitle">
-        Record a new item in your inventory.
-      </p>
+      <p className="page-subtitle">Record a new item in your inventory.</p>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label className="section-heading block mb-1">
-            Name *
-          </label>
+          <label className="section-heading block mb-1">Name *</label>
           <input
             type="text"
             value={name}
@@ -64,9 +62,7 @@ export default function NewToolPage() {
         </div>
 
         <div>
-          <label className="section-heading block mb-1">
-            Description
-          </label>
+          <label className="section-heading block mb-1">Description</label>
           <input
             type="text"
             value={description}
@@ -78,9 +74,7 @@ export default function NewToolPage() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="section-heading block mb-1">
-              Category
-            </label>
+            <label className="section-heading block mb-1">Category</label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
@@ -93,9 +87,7 @@ export default function NewToolPage() {
           </div>
 
           <div>
-            <label className="section-heading block mb-1">
-              Value ($)
-            </label>
+            <label className="section-heading block mb-1">Value ($)</label>
             <input
               type="number"
               value={value}
@@ -109,9 +101,7 @@ export default function NewToolPage() {
         </div>
 
         <div>
-          <label className="section-heading block mb-1">
-            Condition
-          </label>
+          <label className="section-heading block mb-1">Condition</label>
           <div className="flex gap-3">
             {conditions.map((c) => (
               <button
@@ -127,8 +117,8 @@ export default function NewToolPage() {
         </div>
 
         <div className="flex gap-3 pt-4">
-          <button type="submit" className="btn-primary flex-1">
-            Add to Inventory
+          <button type="submit" className="btn-primary flex-1" disabled={saving}>
+            {saving ? "Saving..." : "Add to Inventory"}
           </button>
           <button
             type="button"

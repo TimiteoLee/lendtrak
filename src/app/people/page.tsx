@@ -9,10 +9,16 @@ import { Plus, Trash2, History } from "lucide-react";
 export default function PeoplePage() {
   const [people, setPeople] = useState<Person[]>([]);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setPeople(getPeople());
+    loadPeople();
   }, []);
+
+  async function loadPeople() {
+    setPeople(await getPeople());
+    setLoading(false);
+  }
 
   const filtered = people.filter((p) => {
     const term = search.toLowerCase().replace(/'/g, "");
@@ -20,17 +26,21 @@ export default function PeoplePage() {
     return name.includes(term);
   });
 
-  function handleDelete(id: string) {
-    const loans = getLoansForPerson(id);
+  async function handleDelete(id: string) {
+    const loans = await getLoansForPerson(id);
     const active = loans.filter((l) => !l.actual_return_date);
     if (active.length > 0) {
       alert("Cannot remove someone who currently has items on loan.");
       return;
     }
     if (confirm("Remove this person from your contacts?")) {
-      deletePerson(id);
-      setPeople(getPeople());
+      await deletePerson(id);
+      loadPeople();
     }
+  }
+
+  if (loading) {
+    return <div className="text-center py-12" style={{ color: "var(--fg-faint)" }}>Loading...</div>;
   }
 
   return (
@@ -42,10 +52,7 @@ export default function PeoplePage() {
             {people.length} trusted borrower{people.length !== 1 ? "s" : ""}
           </p>
         </div>
-        <Link
-          href="/people/new"
-          className="btn-primary flex items-center gap-1"
-        >
+        <Link href="/people/new" className="btn-primary flex items-center gap-1">
           <Plus size={16} />
           Add
         </Link>

@@ -9,10 +9,16 @@ import { Plus, Trash2, Pencil, History } from "lucide-react";
 export default function ToolsPage() {
   const [tools, setTools] = useState<Tool[]>([]);
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setTools(getTools());
+    loadTools();
   }, []);
+
+  async function loadTools() {
+    setTools(await getTools());
+    setLoading(false);
+  }
 
   const filtered = tools.filter((t) => {
     const term = search.toLowerCase().replace(/'/g, "");
@@ -21,17 +27,21 @@ export default function ToolsPage() {
     return name.includes(term) || cat.includes(term);
   });
 
-  function handleDelete(id: string) {
-    const loans = getLoansForTool(id);
+  async function handleDelete(id: string) {
+    const loans = await getLoansForTool(id);
     const active = loans.filter((l) => !l.actual_return_date);
     if (active.length > 0) {
       alert("Cannot delete a tool that is currently on loan.");
       return;
     }
     if (confirm("Remove this tool from your inventory?")) {
-      deleteTool(id);
-      setTools(getTools());
+      await deleteTool(id);
+      loadTools();
     }
+  }
+
+  if (loading) {
+    return <div className="text-center py-12" style={{ color: "var(--fg-faint)" }}>Loading...</div>;
   }
 
   return (
@@ -75,7 +85,7 @@ export default function ToolsPage() {
                   <div className="text-sm flex items-center gap-2" style={{ color: "var(--fg-faint)" }}>
                     <span>{tool.category}</span>
                     <span>&middot;</span>
-                    <span>${tool.value.toLocaleString()}</span>
+                    <span>${Number(tool.value).toLocaleString()}</span>
                     <span>&middot;</span>
                     <span>{tool.condition}</span>
                   </div>

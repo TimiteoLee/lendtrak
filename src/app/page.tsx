@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { getActiveLoans, getStats, returnLoan } from "@/lib/store";
 import { Loan } from "@/types";
@@ -19,18 +19,21 @@ export default function Home() {
   });
   const [returningId, setReturningId] = useState<string | null>(null);
   const [returnCondition, setReturnCondition] = useState("Good");
+  const [loading, setLoading] = useState(true);
+
+  const refresh = useCallback(async () => {
+    const [loans, s] = await Promise.all([getActiveLoans(), getStats()]);
+    setActiveLoans(loans);
+    setStats(s);
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
     refresh();
-  }, []);
+  }, [refresh]);
 
-  function refresh() {
-    setActiveLoans(getActiveLoans());
-    setStats(getStats());
-  }
-
-  function handleReturn(id: string) {
-    returnLoan(id, returnCondition);
+  async function handleReturn(id: string) {
+    await returnLoan(id, returnCondition);
     setReturningId(null);
     setReturnCondition("Good");
     refresh();
@@ -46,6 +49,14 @@ export default function Home() {
     return "active";
   }
 
+  if (loading) {
+    return (
+      <div className="text-center py-12" style={{ color: "var(--fg-faint)" }}>
+        Loading...
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="mb-8">
@@ -55,7 +66,6 @@ export default function Home() {
         </p>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 gap-4 mb-8">
         <div className="stat-card">
           <div className="section-heading mb-1">Items Owned</div>
@@ -83,7 +93,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Active Loans */}
       <div className="mb-4 flex items-center justify-between">
         <h2 className="section-heading">Outstanding Loans</h2>
         {stats.overdueCount > 0 && (
@@ -192,7 +201,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Quick links */}
       <div className="mt-8 pt-4" style={{ borderTop: "1px solid var(--border)" }}>
         <div className="flex flex-col gap-2">
           {[

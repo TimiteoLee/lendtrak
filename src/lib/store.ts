@@ -1,164 +1,154 @@
+import { supabase } from "./supabase";
 import { Tool, Person, Loan } from "@/types";
 
-const TOOLS_KEY = "tooltrack_tools";
-const PEOPLE_KEY = "tooltrack_people";
-const LOANS_KEY = "tooltrack_loans";
-
-function generateId(): string {
-  return crypto.randomUUID();
-}
-
-function getItems<T>(key: string): T[] {
-  if (typeof window === "undefined") return [];
-  const data = localStorage.getItem(key);
-  return data ? JSON.parse(data) : [];
-}
-
-function setItems<T>(key: string, items: T[]): void {
-  localStorage.setItem(key, JSON.stringify(items));
-}
-
 // Tools
-export function getTools(): Tool[] {
-  return getItems<Tool>(TOOLS_KEY);
+export async function getTools(): Promise<Tool[]> {
+  const { data } = await supabase
+    .from("tools")
+    .select("*")
+    .order("created_at", { ascending: false });
+  return (data as Tool[]) || [];
 }
 
-export function getTool(id: string): Tool | undefined {
-  return getTools().find((t) => t.id === id);
+export async function getTool(id: string): Promise<Tool | undefined> {
+  const { data } = await supabase.from("tools").select("*").eq("id", id).single();
+  return data as Tool | undefined;
 }
 
-export function saveTool(tool: Omit<Tool, "id" | "created_at">): Tool {
-  const tools = getTools();
-  const newTool: Tool = {
-    ...tool,
-    id: generateId(),
-    created_at: new Date().toISOString(),
-  };
-  tools.push(newTool);
-  setItems(TOOLS_KEY, tools);
-  return newTool;
+export async function saveTool(tool: Omit<Tool, "id" | "created_at">): Promise<Tool> {
+  const { data } = await supabase.from("tools").insert(tool).select().single();
+  return data as Tool;
 }
 
-export function updateTool(id: string, updates: Partial<Tool>): Tool | undefined {
-  const tools = getTools();
-  const index = tools.findIndex((t) => t.id === id);
-  if (index === -1) return undefined;
-  tools[index] = { ...tools[index], ...updates };
-  setItems(TOOLS_KEY, tools);
-  return tools[index];
+export async function updateTool(id: string, updates: Partial<Tool>): Promise<Tool | undefined> {
+  const { id: _id, created_at: _ca, ...rest } = updates as Tool;
+  const { data } = await supabase.from("tools").update(rest).eq("id", id).select().single();
+  return data as Tool | undefined;
 }
 
-export function deleteTool(id: string): void {
-  setItems(TOOLS_KEY, getTools().filter((t) => t.id !== id));
+export async function deleteTool(id: string): Promise<void> {
+  await supabase.from("tools").delete().eq("id", id);
 }
 
 // People
-export function getPeople(): Person[] {
-  return getItems<Person>(PEOPLE_KEY);
+export async function getPeople(): Promise<Person[]> {
+  const { data } = await supabase
+    .from("people")
+    .select("*")
+    .order("created_at", { ascending: false });
+  return (data as Person[]) || [];
 }
 
-export function getPerson(id: string): Person | undefined {
-  return getPeople().find((p) => p.id === id);
+export async function getPerson(id: string): Promise<Person | undefined> {
+  const { data } = await supabase.from("people").select("*").eq("id", id).single();
+  return data as Person | undefined;
 }
 
-export function savePerson(person: Omit<Person, "id" | "created_at">): Person {
-  const people = getPeople();
-  const newPerson: Person = {
-    ...person,
-    id: generateId(),
-    created_at: new Date().toISOString(),
-  };
-  people.push(newPerson);
-  setItems(PEOPLE_KEY, people);
-  return newPerson;
+export async function savePerson(person: Omit<Person, "id" | "created_at">): Promise<Person> {
+  const { data } = await supabase.from("people").insert(person).select().single();
+  return data as Person;
 }
 
-export function updatePerson(id: string, updates: Partial<Person>): Person | undefined {
-  const people = getPeople();
-  const index = people.findIndex((p) => p.id === id);
-  if (index === -1) return undefined;
-  people[index] = { ...people[index], ...updates };
-  setItems(PEOPLE_KEY, people);
-  return people[index];
+export async function updatePerson(id: string, updates: Partial<Person>): Promise<Person | undefined> {
+  const { id: _id, created_at: _ca, ...rest } = updates as Person;
+  const { data } = await supabase.from("people").update(rest).eq("id", id).select().single();
+  return data as Person | undefined;
 }
 
-export function deletePerson(id: string): void {
-  setItems(PEOPLE_KEY, getPeople().filter((p) => p.id !== id));
+export async function deletePerson(id: string): Promise<void> {
+  await supabase.from("people").delete().eq("id", id);
 }
 
 // Loans
-export function getLoans(): Loan[] {
-  const loans = getItems<Loan>(LOANS_KEY);
-  const tools = getTools();
-  const people = getPeople();
-  return loans.map((loan) => ({
-    ...loan,
-    tool: tools.find((t) => t.id === loan.tool_id),
-    person: people.find((p) => p.id === loan.person_id),
-  }));
+export async function getLoans(): Promise<Loan[]> {
+  const { data } = await supabase
+    .from("loans")
+    .select("*, tool:tools(*), person:people(*)")
+    .order("created_at", { ascending: false });
+  return (data as Loan[]) || [];
 }
 
-export function getLoan(id: string): Loan | undefined {
-  return getLoans().find((l) => l.id === id);
+export async function getLoan(id: string): Promise<Loan | undefined> {
+  const { data } = await supabase
+    .from("loans")
+    .select("*, tool:tools(*), person:people(*)")
+    .eq("id", id)
+    .single();
+  return data as Loan | undefined;
 }
 
-export function getLoansForTool(toolId: string): Loan[] {
-  return getLoans().filter((l) => l.tool_id === toolId);
+export async function getLoansForTool(toolId: string): Promise<Loan[]> {
+  const { data } = await supabase
+    .from("loans")
+    .select("*, tool:tools(*), person:people(*)")
+    .eq("tool_id", toolId)
+    .order("created_at", { ascending: false });
+  return (data as Loan[]) || [];
 }
 
-export function getLoansForPerson(personId: string): Loan[] {
-  return getLoans().filter((l) => l.person_id === personId);
+export async function getLoansForPerson(personId: string): Promise<Loan[]> {
+  const { data } = await supabase
+    .from("loans")
+    .select("*, tool:tools(*), person:people(*)")
+    .eq("person_id", personId)
+    .order("created_at", { ascending: false });
+  return (data as Loan[]) || [];
 }
 
-export function getActiveLoans(): Loan[] {
-  return getLoans().filter((l) => !l.actual_return_date);
+export async function getActiveLoans(): Promise<Loan[]> {
+  const { data } = await supabase
+    .from("loans")
+    .select("*, tool:tools(*), person:people(*)")
+    .is("actual_return_date", null)
+    .order("created_at", { ascending: false });
+  return (data as Loan[]) || [];
 }
 
-export function saveLoan(loan: Omit<Loan, "id" | "created_at" | "tool" | "person">): Loan {
-  const loans = getItems<Loan>(LOANS_KEY);
-  const newLoan: Loan = {
-    ...loan,
-    id: generateId(),
-    created_at: new Date().toISOString(),
-  };
-  loans.push(newLoan);
-  setItems(LOANS_KEY, loans);
-  return newLoan;
+export async function saveLoan(
+  loan: Omit<Loan, "id" | "created_at" | "tool" | "person">
+): Promise<Loan> {
+  const { data } = await supabase.from("loans").insert(loan).select().single();
+  return data as Loan;
 }
 
-export function returnLoan(
+export async function returnLoan(
   id: string,
   conditionIn: string,
   notes?: string
-): Loan | undefined {
-  const loans = getItems<Loan>(LOANS_KEY);
-  const index = loans.findIndex((l) => l.id === id);
-  if (index === -1) return undefined;
-  loans[index] = {
-    ...loans[index],
+): Promise<Loan | undefined> {
+  const updates: Record<string, unknown> = {
     actual_return_date: new Date().toISOString(),
     condition_in: conditionIn,
-    notes: notes || loans[index].notes,
   };
-  setItems(LOANS_KEY, loans);
-  return loans[index];
+  if (notes) updates.notes = notes;
+
+  const { data } = await supabase
+    .from("loans")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
+  return data as Loan | undefined;
 }
 
-export function deleteLoan(id: string): void {
-  setItems(LOANS_KEY, getItems<Loan>(LOANS_KEY).filter((l) => l.id !== id));
+export async function deleteLoan(id: string): Promise<void> {
+  await supabase.from("loans").delete().eq("id", id);
 }
 
 // Stats
-export function getStats() {
-  const tools = getTools();
-  const loans = getLoans();
-  const activeLoans = loans.filter((l) => !l.actual_return_date);
-  const totalValue = tools.reduce((sum, t) => sum + t.value, 0);
+export async function getStats() {
+  const [tools, loans, activeLoans] = await Promise.all([
+    getTools(),
+    getLoans(),
+    getActiveLoans(),
+  ]);
+
+  const totalValue = tools.reduce((sum, t) => sum + Number(t.value), 0);
   const lentOutValue = activeLoans.reduce(
-    (sum, l) => sum + (l.tool?.value || 0),
+    (sum, l) => sum + Number(l.tool?.value || 0),
     0
   );
-  const totalFees = loans.reduce((sum, l) => sum + l.fee_amount, 0);
+  const totalFees = loans.reduce((sum, l) => sum + Number(l.fee_amount), 0);
   const overdue = activeLoans.filter(
     (l) =>
       l.expected_return_date &&
